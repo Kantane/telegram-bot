@@ -1,12 +1,33 @@
-import logging
 import os
+import json
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Считываем JSON из переменной окружения
+creds_json = os.getenv("GOOGLE_CREDS_JSON")
+
+if not creds_json:
+    raise ValueError("Переменная окружения GOOGLE_CREDS_JSON не установлена")
+
+# Преобразуем строку обратно в словарь
+creds_dict = json.loads(creds_json)
+
+# Настройка доступа к Google Sheets
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive"
+]
+
+# Используем from_json_keyfile_dict вместо from_json_keyfile_name
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+import logging
 import re
 import gspread
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.types import KeyboardButton as AiogramKeyboardButton
-from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
 import asyncio
 from datetime import datetime
@@ -20,13 +41,6 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 GOOGLE_SHEET_NAME = os.getenv('GOOGLE_SHEET_NAME')
 
 # Авторизация Google Sheets
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
 client = gspread.authorize(creds)
 sheet = client.open(GOOGLE_SHEET_NAME).sheet1
 
@@ -204,4 +218,6 @@ async def main():
 
 
 if __name__ == "__main__":
+    asyncio.run(main())
+
     asyncio.run(main())
